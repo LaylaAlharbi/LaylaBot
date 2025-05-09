@@ -27,25 +27,35 @@ export default function MessageInput({ value, onChange, onSend, disabled }) {
       alert('Speech recognition not supported in this browser.');
       return;
     }
-
+  
     if (isRecording) {
       recognition.stop();
       setIsRecording(false);
     } else {
       recognition.start();
       setIsRecording(true);
-
+  
+      // Set a timeout to stop recording after 4 seconds
+      const timeoutId = setTimeout(() => {
+        if (isRecording) {
+          recognition.stop();
+        }
+      }, 4000);
+  
       recognition.onresult = (event) => {
+        clearTimeout(timeoutId); // Clear the timeout if we get results earlier
         const transcript = event.results[0][0].transcript;
         onChange(transcript);
         setIsRecording(false);
       };
-
-      recognition.onerror = () => {
+  
+      recognition.onerror = (event) => {
+        clearTimeout(timeoutId); // Clear the timeout on error
         setIsRecording(false);
       };
-
+  
       recognition.onend = () => {
+        clearTimeout(timeoutId); // Clear the timeout when recording ends
         setIsRecording(false);
       };
     }
